@@ -5,16 +5,38 @@ match revisionChain=n-[r?:wasRevisionOf*1..100]->n2
 return n2.title, n2.time?, n2.revid, length(revisionChain), r
 order by n2.revid
 
+## removed deprecated symbols
+
+START n=node(1)
+match revisionChain=n-[r:wasRevisionOf*1..100]->n2
+return n2.title, [n2.time], n2.revid, length(revisionChain), r
+order by n2.revid
+
+
 %% find all users who ever contributed to revisions of this page
 
 START current=node(1)
 match  current-[wasRevisionOf*0..100]->previous -[:wasGeneratedBy]->edit-[:wasAssociatedWith]->agent
 return distinct agent.user_name
 
+
+# fixed deprication warning
+
+START current=node(1)
+match  (current)-[wasRevisionOf*0..100]->(previous) -[:wasGeneratedBy]->(edit)-[:wasAssociatedWith]->(agent)
+return distinct agent.user_name
+
+
 %% count the number of agents (without indexes)
 START node=node(*)
 WHERE node.type! ="agent"
 return count(node)
+
+%% fixed deprecation
+START node=node(*)
+WHERE node.type <> "agent"
+return count(node)
+
 
 %% count the number of revisions for each agent, across all page titles
 
